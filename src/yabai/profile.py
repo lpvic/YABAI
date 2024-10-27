@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from .constants import ZH_L16, noaa_cns_equations, pw
+from .constants import GAS_SWITCH_MODE_VALUES
 from .tanks import Tank
 from .exceptions import InterpolationError
 
@@ -34,10 +35,14 @@ class Parameters:
     deco_stops: bool = True
     safety_stop: bool = True
 
-    gas_switch: str = 'depth'  # 'depth' | 'stop' | 'manual'
+    gas_switch_mode: str = 'depth'  # 'depth' | 'stop' | 'manual'
     gas_switch_duration: float = 60
 
     dt: timedelta = timedelta(seconds=1)
+
+    def __post_init__(self):
+        if not (self.gas_switch_mode in GAS_SWITCH_MODE_VALUES):
+            raise ValueError('Incorrect gas switch mode in parameters')
 
 
 class Waypoint:
@@ -469,7 +474,7 @@ class Profile:
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
-            if (((self._params.gas_switch == 'stop') or (self._params.gas_switch == 'depth')) and
+            if (((self._params.gas_switch_mode == 'stop') or (self._params.gas_switch_mode == 'depth')) and
                     (stop_time >= (self._params.gas_switch_duration - 1))):
                 new_ip.waypoint.tank = self._select_tank(new_ip.waypoint.depth)
             new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
@@ -495,7 +500,7 @@ class Profile:
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
             new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
-            if (((self._params.gas_switch == 'stop') or (self._params.gas_switch == 'depth')) and
+            if (((self._params.gas_switch_mode == 'stop') or (self._params.gas_switch_mode == 'depth')) and
                     (stop_time >= (self._params.gas_switch_duration - 1))):
                 new_ip.waypoint.tank = self._select_tank(new_ip.waypoint.depth)
             new_ip.cns = self._calculate_cns(new_ip, prev_ip)

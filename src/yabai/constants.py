@@ -27,3 +27,5 @@ noaa_cns_equations = {(0.5, 0.6): (-1800., 1800.), (0.6, 0.7): (-1500., 1620.), 
 
 # Water vapour pressure
 pw = 0.0567
+
+GAS_SWITCH_MODE_VALUES = {'manual', 'stop', 'depth'}
