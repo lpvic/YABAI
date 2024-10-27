@@ -1,4 +1,4 @@
-# v0.0 Branch initialization
+# v0.0.0 Branch initialization
 [build-system]
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
