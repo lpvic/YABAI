@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "package_name"
+version = "0.0.0"
+authors = [
+  { name="Luis Pedro Vicente Matilla", email="luis.p.vicente@gmail.com" },
+]
+description = "Write the package description here"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: AGPL-3.0-only",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/lpvic/repository-name"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = []
+exclude = []
+namespaces = false
