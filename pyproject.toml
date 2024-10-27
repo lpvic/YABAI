@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yabai"
-version = "0.0.0"
+version = "0.0.1"
 authors = [
   { name="Luis Pedro Vicente Matilla", email="luis.p.vicente@gmail.com" },
 ]
@@ -16,7 +16,9 @@ classifiers = [
     "License :: OSI Approved :: AGPL-3.0-only",
     "Operating System :: OS Independent",
 ]
-dependencies = []
+dependencies = [
+    "numpy >= 1.26.4",
+]
 
 [project.urls]
 Homepage = "https://github.com/lpvic/yabai"
