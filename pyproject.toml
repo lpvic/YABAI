@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yabai"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Luis Pedro Vicente Matilla", email="luis.p.vicente@gmail.com" },
 ]
