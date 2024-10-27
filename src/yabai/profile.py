@@ -35,7 +35,7 @@ class Parameters:
     deco_stops: bool = True
     safety_stop: bool = True
 
-    gas_switch_mode: str = 'depth'  # 'depth' | 'stop' | 'manual'
+    gas_switch_mode: str = 'stop'
     gas_switch_duration: float = 60
 
     dt: timedelta = timedelta(seconds=1)
@@ -43,6 +43,8 @@ class Parameters:
     def __post_init__(self):
         if not (self.gas_switch_mode in GAS_SWITCH_MODE_VALUES):
             raise ValueError('Incorrect gas switch mode in parameters')
+        if self.dt.seconds < 1:
+            raise ValueError('Integration time interval must not be shorter than 1s')
 
 
 class Waypoint:
@@ -409,7 +411,7 @@ class Profile:
             f_ig = self._tanks[prev_ip.waypoint.tank].gas.fN2 if g == 'N2' else\
                 self._tanks[prev_ip.waypoint.tank].gas.fHe
             pi = np.full(16, f_ig * (p_amb - pw))
-            r = (((ip.waypoint.depth - prev_ip.waypoint.depth) / prev_ip.waypoint.duration.seconds / 60) * f_ig) / 10
+            r = (((ip.waypoint.depth - prev_ip.waypoint.depth) / (prev_ip.waypoint.duration.seconds / 60)) * f_ig) / 10
             k = log(2) / ZH_L16['C'][g]['ht']
 
             # Schreiner equation
