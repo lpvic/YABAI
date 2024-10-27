@@ -1,89 +1,14 @@
-import json
 import itertools
 from math import ceil, floor, log
-from pathlib import Path
 from dataclasses import dataclass
+from datetime import timedelta
 
 import numpy as np
 from matplotlib import pyplot as plt
 
-# Coefficients for Bühlmann ZH-L16C
-ZH_L16 = {
-    'C': {
-        'N2': {
-            'ht': np.array([5.0, 8.0, 12.5, 18.5, 27.0, 38.3, 54.3, 77.0, 109.0, 146.0, 187.0, 239.0, 305.0, 390.0,
-                            498.0, 635.0]),
-            'a': np.array([1.1696, 1.0000, 0.8618, 0.7562, 0.6200, 0.5043, 0.4410, 0.4000, 0.3750, 0.3500, 0.3295,
-                           0.3065, 0.2835, 0.2610, 0.2480, 0.2327]),
-            'b': np.array([0.5578, 0.6514, 0.7222, 0.7825, 0.8126, 0.8434, 0.8693, 0.8910, 0.9092, 0.9222, 0.9319,
-                           0.9403, 0.9477, 0.9544, 0.9602, 0.9653])},
-        'He': {
-            'ht': np.array([1.88, 3.02, 4.72, 6.99, 10.21, 14.48, 20.53, 29.11, 41.20, 55.19, 70.69, 90.34, 115.29,
-                            147.42, 188.24, 240.03]),
-            'a': np.array([1.6189, 1.3830, 1.1919, 1.0458, 0.9220, 0.8205, 0.7305, 0.6502, 0.5950, 0.5545, 0.5333,
-                           0.5189, 0.5181, 0.5176, 0.5172, 0.5119]),
-            'b': np.array([0.4770, 0.5747, 0.6527, 0.7223, 0.7582, 0.7957, 0.8279, 0.8553, 0.8757, 0.8903, 0.8997,
-                           0.9073, 0.9122, 0.9171, 0.9217, 0.9267])}}}
-
-# NOAA table for CNS calculation
-noaa_cns_points = {0.5: 900., 0.6: 720., 0.7: 570., 0.8: 450., 0.9: 360., 1.0: 300., 1.1: 270, 1.2: 240, 1.3: 210.,
-                   1.4: 180.,
-            1.5: 180., 1.6: 150.}
-noaa_cns_equations = {(0.5, 0.6): (-1800., 1800.), (0.6, 0.7): (-1500., 1620.), (0.7, 0.8): (-1200., 1410.),
-                      (0.8, 0.9): (-900., 1170.), (0.9, 1.1): (-600., 900.), (1.1, 1.5): (-300., 570.),
-                      (1.5, 1.6): (-750., 1245.)}
-
-# Water vapour pressure
-pw = 0.0567
-
-
-class IncorrectGasMixture(Exception):
-    pass
-
-
-class IncorrectTimeUnit(Exception):
-    pass
-
-
-class InterpolationError(Exception):
-    pass
-
-
-class PPO2OutOfRange(Exception):
-    pass
-
-
-class Time:
-    def __init__(self, time: float | int, unit='m') -> None:
-        self._unit = unit
-        if self._unit == 'm':
-            self._minutes: float = time
-            self._seconds: int = int(round(time * 60., 0))
-        elif self._unit == 's':
-            self._seconds = time
-            self._minutes = self.seconds / 60
-        else:
-            raise IncorrectTimeUnit
-
-    @property
-    def seconds(self) -> int:
-        return self._seconds
-
-    @property
-    def minutes(self) -> float:
-        return self._minutes
-
-    @property
-    def unit(self) -> str:
-        return self._unit
-
-    def __str__(self) -> str:
-        mins = floor(self._minutes)
-        secs = self._seconds - mins * 60
-        return '{:02d}:{:02.0f}'.format(int(floor(mins)), secs)
-
-    def __repr__(self) -> str:
-        return '<Time: {}>'.format(self._minutes)
+from .constants import ZH_L16, noaa_cns_equations, pw
+from .tanks import Tank
+from .exceptions import InterpolationError
 
 
 @dataclass
@@ -112,108 +37,30 @@ class Parameters:
     gas_switch: str = 'depth'  # 'depth' | 'stop' | 'manual'
     gas_switch_duration: float = 60
 
-    dt: Time = Time(time=5, unit='s')
-
-    def to_json(self) -> str:
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
-    def from_json(self, json_str: str | Path) -> None:
-        self.__dict__ = json.loads(json_str)
-
-
-class Gas:
-    def __init__(self, o2: int = 21, he: int = 0) -> None:
-        self._O2: int = o2
-        self._He: int = he
-        self._N2: int = 100 - o2 - he
-
-    def ppO2(self, depth: float) -> float:
-        pabs = (depth / 10) + 1
-        return pabs * self._O2 / 100
-
-    def ppN2(self, depth: float) -> float:
-        pabs = (depth / 10) + 1
-        return pabs * self._N2 / 100
-
-    def ppHe(self, depth: float) -> float:
-        pabs = (depth / 10) + 1
-        return pabs * self._He / 100
-
-    def mod(self, pp_o2=1.4) -> float:
-        return 10 * ((pp_o2 / (self._O2 / 100)) - 1)
-
-    @property
-    def O2(self) -> int:
-        return self._O2
-
-    @property
-    def He(self) -> int:
-        return self._He
-
-    @property
-    def N2(self) -> int:
-        return self._N2
-
-    @property
-    def fO2(self) -> float:
-        return self._O2 / 100.
-
-    @property
-    def fN2(self) -> float:
-        return self._N2 / 100.
-
-    @property
-    def fHe(self) -> float:
-        return self._He / 100.
-
-    def __str__(self) -> str:
-        if (self._O2 == 21) and (self._He == 0):
-            return 'Air'
-        elif self._He == 0:
-            return 'EAN{}'.format(self._O2)
-        else:
-            return 'Trimix{}/{}'.format(self._O2, self._He)
-
-    def __repr__(self) -> str:
-        return '<Gas Mixture: O2: {} N2: {} He: {}>'.format(self._O2, self._N2, self._He)
-
-
-class Tank:
-    def __init__(self, start_pressure: int = 200, gas: Gas = Gas(), size: int = 15) -> None:
-        self._gas = gas
-        self.start_pressure = start_pressure
-        self._size = size
-
-    @property
-    def gas(self) -> Gas:
-        return self._gas
-
-    @property
-    def size(self) -> int:
-        return self._size
+    dt: timedelta = timedelta(seconds=1)
 
 
 class Waypoint:
-    def __init__(self, depth: float = 0., duration: float | Time = None, runtime: float | Time = None, tank: int = 0)\
-            -> None:
+    def __init__(self, depth: float = 0., duration: float | timedelta = None, runtime: float | timedelta = None,
+                 tank: int = 0) -> None:
         self.depth: float = depth / 1.
-        self.duration: Time
-        self.runtime: Time
+        self.duration: timedelta
+        self.runtime: timedelta
         self.tank = tank
 
         if duration is None:
-            self.duration = Time(0)
-        elif isinstance(duration, Time):
+            self.duration = timedelta(seconds=0)
+        elif isinstance(duration, timedelta):
             self.duration = duration
         else:
-            self.duration = Time(duration)
+            self.duration = timedelta(minutes=duration)
 
         if runtime is None:
-            self.runtime = Time(0)
-        elif isinstance(runtime, Time):
+            self.runtime = timedelta(seconds=0)
+        elif isinstance(runtime, timedelta):
             self.runtime = runtime
         else:
-            self.runtime = Time(runtime)
+            self.runtime = timedelta(minutes=runtime)
 
     def __str__(self) -> str:
         return ('Waypoint(depth={depth:.1f}, duration={duration}, runtime={runtime}, tank={tank})'
@@ -288,7 +135,7 @@ class Profile:
         for ip in self._integration_points:
             depth.append(ip.waypoint.depth)
             ceiling.append(ip.ceiling)
-            runtime.append(ip.waypoint.runtime.minutes)
+            runtime.append(ip.waypoint.runtime.seconds / 60)
         plt.gca().invert_yaxis()
         plt.plot(runtime, depth, 'b-', markersize=2)
         plt.plot(runtime, ceiling, 'r-', markersize=2)
@@ -361,36 +208,38 @@ class Profile:
     def _complete_waypoints(self, waypoints: list[Waypoint], desc: bool = True) -> None:
         wps = [wp for wp in waypoints]
         if wps[0].depth != 0:
-            time_to_bottom = Time(wps[0].depth / self._params.v_desc, unit='m')
+            time_to_bottom = timedelta(minutes=wps[0].depth / self._params.v_desc)
             if desc:
-                self._waypoints.append(Waypoint(0, time_to_bottom, Time(0)))
+                self._waypoints.append(Waypoint(0, time_to_bottom, timedelta(seconds=0)))
                 self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration, self._waypoints[0].duration))
             else:
-                self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration, Time(0)))
+                self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration, timedelta(seconds=0)))
         else:
-            self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration, Time(0)))
+            self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration, timedelta(seconds=0)))
 
         if len(wps) == 1:
-            wps.append(Waypoint(wps[0].depth, Time(0), wps[0].runtime.minutes + wps[0].duration.minutes))
+            wps.append(Waypoint(wps[0].depth, timedelta(seconds=0),
+                                wps[0].runtime.seconds / 60 + wps[0].duration.seconds / 60))
 
         for idx, wp in enumerate(wps[1:], start=1):
             prev_wp = self._waypoints[-1]
 
             if wp.depth > prev_wp.depth:
-                desc_time = Time((wp.depth - prev_wp.depth) / self._params.v_desc)
+                desc_time = timedelta(minutes=(wp.depth - prev_wp.depth) / self._params.v_desc)
                 self._waypoints.append(Waypoint(prev_wp.depth, desc_time,
-                                                prev_wp.runtime.minutes + prev_wp.duration.minutes))
+                                                prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
             elif wp.depth < prev_wp.depth:
-                asc_time = Time((prev_wp.depth - wp.depth) / self._params.v_asc)
+                asc_time = timedelta(minutes=(prev_wp.depth - wp.depth) / self._params.v_asc)
                 self._waypoints.append(Waypoint(prev_wp.depth, asc_time,
-                                                prev_wp.runtime.minutes + prev_wp.duration.minutes))
+                                                prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
 
             prev_wp = self._waypoints[-1]
             if idx == (len(waypoints) - 1):
-                duration = Time(0)
+                duration = timedelta(seconds=0)
             else:
                 duration = wp.duration
-            self._waypoints.append(Waypoint(wp.depth, duration, prev_wp.runtime.minutes + prev_wp.duration.minutes))
+            self._waypoints.append(Waypoint(wp.depth, duration,
+                                            prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
 
     def _calculate_bottom(self) -> None:
         t = 0
@@ -399,8 +248,8 @@ class Profile:
                 continue
             else:
                 while t <= (wp.runtime.seconds + wp.duration.seconds):
-                    new_wp = Waypoint(self._interpolate_depth(Time(t, 's')), self._params.dt, Time(t, 's'))
-
+                    new_wp = Waypoint(self._interpolate_depth(timedelta(seconds=t)), self._params.dt,
+                                      timedelta(seconds=t))
                     new_ip = IntegrationPoint(new_wp)
                     new_ip.tank_pressure = [x.start_pressure for x in self._tanks]
 
@@ -428,8 +277,9 @@ class Profile:
         out = []
         while prev_ip.waypoint.depth > depth:
             t = t + self._params.dt.seconds
-            new_wp = Waypoint(depth=round(prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.minutes), 1),
-                              duration=self._params.dt, runtime=Time(t, 's'), tank=prev_ip.waypoint.tank)
+            new_wp = Waypoint(depth=round(prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.seconds / 60),
+                                          1),
+                              duration=self._params.dt, runtime=timedelta(seconds=t), tank=prev_ip.waypoint.tank)
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
@@ -443,7 +293,7 @@ class Profile:
 
         if append:
             duration = out[-1].waypoint.runtime.seconds - out[0].waypoint.runtime.seconds + self._params.dt.seconds
-            self._waypoints[-1].duration = Time(duration, 's')
+            self._waypoints[-1].duration = timedelta(seconds=duration)
             self._waypoints.append(Waypoint(out[-1].waypoint.depth, 0, out[-1].waypoint.runtime, out[-1].waypoint.tank))
             self._integration_points = self._integration_points + out
 
@@ -461,9 +311,10 @@ class Profile:
             t = prev_ip.waypoint.runtime.seconds
             safety_stop_timer = 0.
             out = []
-            while safety_stop_timer < Time(self._params.safety_stop_duration).seconds:
+            while safety_stop_timer < timedelta(minutes=self._params.safety_stop_duration).seconds:
                 t = t + self._params.dt.seconds
-                new_wp = Waypoint(self._params.safety_stop_depth, self._params.dt, Time(t, 's'), prev_ip.waypoint.tank)
+                new_wp = Waypoint(self._params.safety_stop_depth, self._params.dt, timedelta(seconds=t),
+                                  prev_ip.waypoint.tank)
                 new_ip = IntegrationPoint(new_wp)
                 new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
                 new_ip.ceilings = self._calculate_ceilings(new_ip)
@@ -482,7 +333,7 @@ class Profile:
         if append:
             for s in segments:
                 duration = s[-1].waypoint.runtime.seconds - s[0].waypoint.runtime.seconds + self._params.dt.seconds
-                self._waypoints[-1].duration = Time(duration, 's')
+                self._waypoints[-1].duration = timedelta(seconds=duration)
                 self._waypoints.append(Waypoint(s[-1].waypoint.depth, 0, s[-1].waypoint.runtime, s[-1].waypoint.tank))
                 self._integration_points = self._integration_points + s
 
@@ -501,8 +352,8 @@ class Profile:
             out = []
             while prev_ip.waypoint.depth > next_stop:
                 t = t + self._params.dt.seconds
-                new_depth = round(prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.minutes), 1)
-                new_wp = Waypoint(depth=new_depth, duration=self._params.dt, runtime=Time(t, 's'),
+                new_depth = round(prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.seconds / 60), 1)
+                new_wp = Waypoint(depth=new_depth, duration=self._params.dt, runtime=timedelta(seconds=t),
                                   tank=prev_ip.waypoint.tank)
                 new_ip = IntegrationPoint(new_wp)
                 new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
@@ -538,7 +389,7 @@ class Profile:
         if append:
             for s in segments:
                 duration = s[-1].waypoint.runtime.seconds - s[0].waypoint.runtime.seconds + self._params.dt.seconds
-                self._waypoints[-1].duration = Time(duration, 's')
+                self._waypoints[-1].duration = timedelta(seconds=duration)
                 self._waypoints.append(Waypoint(s[-1].waypoint.depth, 0, s[-1].waypoint.runtime, s[-1].waypoint.tank))
                 self._integration_points = self._integration_points + s
 
@@ -553,13 +404,13 @@ class Profile:
             f_ig = self._tanks[prev_ip.waypoint.tank].gas.fN2 if g == 'N2' else\
                 self._tanks[prev_ip.waypoint.tank].gas.fHe
             pi = np.full(16, f_ig * (p_amb - pw))
-            r = (((ip.waypoint.depth - prev_ip.waypoint.depth) / prev_ip.waypoint.duration.minutes) * f_ig) / 10
+            r = (((ip.waypoint.depth - prev_ip.waypoint.depth) / prev_ip.waypoint.duration.seconds / 60) * f_ig) / 10
             k = log(2) / ZH_L16['C'][g]['ht']
 
             # Schreiner equation
             p_ig = pi
-            p_ig = p_ig + r * (prev_ip.waypoint.duration.minutes - (1 / k))
-            p_ig = p_ig - (pi - p0 - (r / k)) * np.exp(-k * prev_ip.waypoint.duration.minutes)
+            p_ig = p_ig + r * (prev_ip.waypoint.duration.seconds / 60 - (1 / k))
+            p_ig = p_ig - (pi - p0 - (r / k)) * np.exp(-k * prev_ip.waypoint.duration.seconds / 60)
 
             out[g] = p_ig
 
@@ -613,7 +464,8 @@ class Profile:
         stop_time = self._params.dt.seconds
         while prev_ip.ceiling < next_deco_stop:
             t = t + self._params.dt.seconds
-            new_wp = Waypoint(depth=depth, duration=self._params.dt, runtime=Time(t, 's'), tank=prev_ip.waypoint.tank)
+            new_wp = Waypoint(depth=depth, duration=self._params.dt, runtime=timedelta(seconds=t),
+                              tank=prev_ip.waypoint.tank)
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
@@ -637,7 +489,8 @@ class Profile:
 
         while (int(floor(stop_time)) % 60) != 0:
             t = t + self._params.dt.seconds
-            new_wp = Waypoint(depth=depth, duration=self._params.dt, runtime=Time(t, 's'), tank=prev_ip.waypoint.tank)
+            new_wp = Waypoint(depth=depth, duration=self._params.dt, runtime=timedelta(seconds=t),
+                              tank=prev_ip.waypoint.tank)
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
@@ -659,7 +512,7 @@ class Profile:
     def _calculate_tank_pressure(self, ip: IntegrationPoint, prev_ip: IntegrationPoint, sac: float) -> list[float]:
         rmv = sac * (ip.p_amb + prev_ip.p_amb) / 2
         bar_min = rmv / self._tanks[prev_ip.waypoint.tank].size
-        consumption = bar_min * prev_ip.waypoint.duration.minutes
+        consumption = bar_min * prev_ip.waypoint.duration.seconds / 60
 
         out = []
         for p in prev_ip.tank_pressure:
@@ -692,7 +545,8 @@ class Profile:
         stop_time = self._params.dt.seconds
         while stop_time <= self._params.gas_switch_duration:
             t = t + self._params.dt.seconds
-            new_wp = Waypoint(depth=depth, duration=self._params.dt, runtime=Time(t, 's'), tank=prev_ip.waypoint.tank)
+            new_wp = Waypoint(depth=depth, duration=self._params.dt, runtime=timedelta(seconds=t),
+                              tank=prev_ip.waypoint.tank)
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
@@ -711,7 +565,7 @@ class Profile:
         return out
 
     def _calculate_otu(self, ip: IntegrationPoint, prev_ip: IntegrationPoint) -> float:
-        segment_time = prev_ip.waypoint.duration.minutes
+        segment_time = prev_ip.waypoint.duration.seconds / 60
         pp_o2_ini = self._tanks[prev_ip.waypoint.tank].gas.ppO2(prev_ip.waypoint.depth)
         pp_o2_end = self._tanks[ip.waypoint.tank].gas.ppO2(ip.waypoint.depth)
 
@@ -741,7 +595,7 @@ class Profile:
         return otu
 
     def _calculate_cns(self, ip: IntegrationPoint, prev_ip: IntegrationPoint) -> float:
-        segment_time = prev_ip.waypoint.duration.minutes
+        segment_time = prev_ip.waypoint.duration.seconds / 60
         pp_o2_ini = self._tanks[prev_ip.waypoint.tank].gas.ppO2(prev_ip.waypoint.depth)
         pp_o2_end = self._tanks[ip.waypoint.tank].gas.ppO2(ip.waypoint.depth)
 
@@ -767,7 +621,7 @@ class Profile:
 
         return cns
 
-    def _interpolate_depth(self, runtime: Time) -> float:
+    def _interpolate_depth(self, runtime: timedelta) -> float:
         wp_0 = None
         wp_1 = None
 
