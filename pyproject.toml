@@ -1,11 +1,10 @@
-# v0.1.0 Branch initialization
 [build-system]
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "yabai"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   { name="Luis Pedro Vicente Matilla", email="luis.p.vicente@gmail.com" },
 ]
