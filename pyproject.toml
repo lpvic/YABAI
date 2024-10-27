@@ -16,7 +16,9 @@ classifiers = [
     "License :: OSI Approved :: AGPL-3.0-only",
     "Operating System :: OS Independent",
 ]
-dependencies = []
+dependencies = [
+    "numpy >= 1.26.4",
+]
 
 [project.urls]
 Homepage = "https://github.com/lpvic/yabai"
