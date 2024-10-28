@@ -6,7 +6,7 @@ from datetime import timedelta
 import numpy as np
 from matplotlib import pyplot as plt
 
-from .constants import ZH_L16, noaa_cns_equations, pw
+from .constants import ZH_L16, NOAA_CNS_EQUATIONS, PW
 from .constants import GAS_SWITCH_MODE_VALUES
 from .tanks import Tank
 from .exceptions import InterpolationError
@@ -82,7 +82,7 @@ class IntegrationPoint:
     def __init__(self, waypoint: Waypoint) -> None:
         self.waypoint = waypoint
         self.tank_pressure = []
-        self.load_ig = {'N2': np.full(16, 0.79 * (1 - pw)), 'He': np.zeros(16)}
+        self.load_ig = {'N2': np.full(16, 0.79 * (1 - PW)), 'He': np.zeros(16)}
         self.ceilings = np.ones(16)
         self.otu = 0.
         self.otu_cum = 0.
@@ -410,7 +410,7 @@ class Profile:
             p0 = prev_ip.load_ig[g]
             f_ig = self._tanks[prev_ip.waypoint.tank].gas.fN2 if g == 'N2' else\
                 self._tanks[prev_ip.waypoint.tank].gas.fHe
-            pi = np.full(16, f_ig * (p_amb - pw))
+            pi = np.full(16, f_ig * (p_amb - PW))
             r = (((ip.waypoint.depth - prev_ip.waypoint.depth) / (prev_ip.waypoint.duration.seconds / 60)) * f_ig) / 10
             k = log(2) / ZH_L16['C'][g]['ht']
 
@@ -611,7 +611,7 @@ class Profile:
 
         m = 0.
         b = 0.
-        for k, v in noaa_cns_equations.items():
+        for k, v in NOAA_CNS_EQUATIONS.items():
             if (pp_o2_ini >= k[0]) and (pp_o2_ini <= k[1]):
                 m = v[0]
                 b = v[1]

@@ -1,7 +1,7 @@
 from src.yabai import *
 
 # Initialize setup object
-params = Parameters(dt=timedelta(seconds=0.5), gf_low=1., gf_high=1., last_stop_depth=3, gas_switch_mode='stop')
+params = Parameters(dt=timedelta(seconds=1), gf_low=1., gf_high=1., last_stop_depth=3, gas_switch_mode='stop')
 
 # Create tanks
 tanks = [Tank(size=15, gas=Gas(o2=21), start_pressure=200),
