@@ -1,22 +1,65 @@
 class Gas:
+    """This is a conceptual class representation for a diving gas mixture.
+
+    Args:
+        o2: Oxigen content in the gas mixture, expressed in percentage, defaults to 21
+        he: Hellium content in the gas mixture, expressed in percentage, defaults to 0
+    """
+
     def __init__(self, o2: int = 21, he: int = 0) -> None:
         self._O2: int = o2
         self._He: int = he
         self._N2: int = 100 - o2 - he
 
     def ppO2(self, depth: float) -> float:
+        """
+        Calculates the oxigen partial pressure of the gas mix at a given depth.
+
+        Args:
+            depth: Depth to calculate oxigen partial pressure of the gas mix (in meters).
+
+        Returns:
+            The oxigen partial pressure of the gas mix at the given depth.
+        """
         pabs = (depth / 10) + 1
         return pabs * self._O2 / 100
 
     def ppN2(self, depth: float) -> float:
+        """
+        Calculates the nitrogen partial pressure of the gas mix at a given depth.
+
+        Args:
+            depth: Depth to calculate nitrogen partial pressure of the gas mix (in meters).
+
+        Returns:
+            The nitrogen partial pressure of the gas mix at the given depth.
+        """
         pabs = (depth / 10) + 1
         return pabs * self._N2 / 100
 
     def ppHe(self, depth: float) -> float:
+        """
+        Calculates the hellium partial pressure of the gas mix at a given depth.
+
+        Args:
+            depth: Depth to calculate hellium partial pressure of the gas mix (in meters).
+
+        Returns:
+            The hellium partial pressure of the gas mix at the given depth.
+        """
         pabs = (depth / 10) + 1
         return pabs * self._He / 100
 
     def mod(self, pp_o2=1.4) -> float:
+        """
+        Calculates the Maximum Operating Depth (MOD) of the gas mix at a given oxigen partial pressure.
+
+        Args:
+            pp_o2: Oxigen partial pressure to calculate MOD
+
+        Returns:
+            The maximum operating depth of the gas mix at the given oxigen partial pressure.
+        """
         return 10 * ((pp_o2 / (self._O2 / 100)) - 1)
 
     @property
