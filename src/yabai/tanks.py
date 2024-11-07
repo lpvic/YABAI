@@ -1,9 +1,10 @@
 class Gas:
-    """This is a conceptual class representation for a diving gas mixture.
+    """
+    Class representing gas mixtures.
 
     Args:
-        o2: Oxigen content in the gas mixture, expressed in percentage, defaults to 21
-        he: Hellium content in the gas mixture, expressed in percentage, defaults to 0
+        o2: Oxigen content in the gas mixture, expressed in percentage, defaults to 21.
+        he: Hellium content in the gas mixture, expressed in percentage, defaults to 0.
     """
 
     def __init__(self, o2: int = 21, he: int = 0) -> None:
@@ -55,7 +56,7 @@ class Gas:
         Calculates the Maximum Operating Depth (MOD) of the gas mix at a given oxigen partial pressure.
 
         Args:
-            pp_o2: Oxigen partial pressure to calculate MOD
+            pp_o2: Oxigen partial pressure to calculate MOD.
 
         Returns:
             The maximum operating depth of the gas mix at the given oxigen partial pressure.
@@ -64,26 +65,44 @@ class Gas:
 
     @property
     def O2(self) -> int:
+        """
+        Oxigen content of the gas mix (in percentage).
+        """
         return self._O2
 
     @property
     def He(self) -> int:
+        """
+        Hellium content of the gas mix (in percentage).
+        """
         return self._He
 
     @property
     def N2(self) -> int:
+        """
+        Nitrogen content of the gas mix (in percentage).
+        """
         return self._N2
 
     @property
     def fO2(self) -> float:
+        """
+        Oxigen fraction of the gas mix (decimal).
+        """
         return self._O2 / 100.
 
     @property
     def fN2(self) -> float:
+        """
+        Nitrogen fraction of the gas mix (decimal).
+        """
         return self._N2 / 100.
 
     @property
     def fHe(self) -> float:
+        """
+        Hellium fraction of the gas mix (decimal).
+        """
         return self._He / 100.
 
     def __str__(self) -> str:
@@ -99,6 +118,15 @@ class Gas:
 
 
 class Tank:
+    """
+    Class reperesenting a scuba tank.
+
+    Args:
+        start_pressure: Tank start pressure.
+        gas: Gas mix in the tank.
+        size: Size of the tank, in liters.
+    """
+
     def __init__(self, start_pressure: int = 200, gas: Gas = Gas(), size: int = 15) -> None:
         self._gas = gas
         self.start_pressure = start_pressure
@@ -106,8 +134,14 @@ class Tank:
 
     @property
     def gas(self) -> Gas:
+        """
+        Gas mix in the tank.
+        """
         return self._gas
 
     @property
     def size(self) -> int:
+        """
+        Size of the tank, in liters.
+        """
         return self._size

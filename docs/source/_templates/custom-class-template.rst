@@ -3,30 +3,34 @@
 .. currentmodule:: {{ module }}
 
 .. autoclass:: {{ objname }}
-   :members:                                    <-- add at least this line
-   :show-inheritance:                           <-- plus I want to show inheritance...
-   :inherited-members:                          <-- ...and inherited members too
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :exclude-members: __init__
 
    {% block methods %}
-   .. automethod:: __init__
 
-   {% if methods %}
+   {%- if methods %}
+   {%- if not ((methods|length == 1) and (methods[0] == '__init__')) %}
    .. rubric:: {{ _('Methods') }}
+   {%- endif %}
 
    .. autosummary::
-   {% for item in methods %}
-      ~{{ name }}.{{ item }}
+   {%- for item in methods %}
+      {%- if item != '__init__' %}
+        ~{{ name }}.{{ item }}
+      {%- endif %}
    {%- endfor %}
-   {% endif %}
-   {% endblock %}
+   {%- endif %}
+   {%- endblock %}
 
    {% block attributes %}
-   {% if attributes %}
+   {%- if attributes %}
    .. rubric:: {{ _('Attributes') }}
 
    .. autosummary::
-   {% for item in attributes %}
+   {%- for item in attributes %}
       ~{{ name }}.{{ item }}
    {%- endfor %}
-   {% endif %}
-   {% endblock %}
+   {%- endif %}
+   {%- endblock %}

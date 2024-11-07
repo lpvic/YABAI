@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path('.').resolve().parents[1] / 'src'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'yabai'
+project = 'YABAI'
 copyright = '2024, Luis Pedro Vicente Matilla'
 author = 'Luis Pedro Vicente Matilla'
 release = 'v0.1.1'
@@ -34,3 +34,4 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_css_files = ['custom.css']

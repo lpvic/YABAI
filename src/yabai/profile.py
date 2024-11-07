@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from .constants import ZH_L16, NOAA_CNS_EQUATIONS, PW
-from .constants import GAS_SWITCH_MODE_VALUES
+from .constants import _GAS_SWITCH_MODE_VALUES
 from .tanks import Tank
 from .exceptions import InterpolationError
 
@@ -41,7 +41,7 @@ class Parameters:
     dt: timedelta = timedelta(seconds=1)
 
     def __post_init__(self):
-        if not (self.gas_switch_mode in GAS_SWITCH_MODE_VALUES):
+        if not (self.gas_switch_mode in _GAS_SWITCH_MODE_VALUES):
             raise ValueError('Incorrect gas switch mode in parameters')
         if self.dt.seconds < 1:
             raise ValueError('Integration time interval must not be shorter than 1s')
