@@ -12,6 +12,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 ########################################################################################################################
 
+"""Dive profile definitions"""
+
+
 import itertools
 from math import ceil, floor, log
 from dataclasses import dataclass
@@ -95,6 +98,15 @@ class Parameters:
 
 
 class Waypoint:
+    """Dive profile waypoints.
+
+    A waypoint marks a change in the dive profile, i.e. from descent to bottom phases, the start of a deco stop, etc.
+
+    Args:
+        depth: Depth of the waypoint.
+        duration: Time interval until the next waypoint.
+        runtime: Start time counted from the beginning of the dive.
+    """
     def __init__(self, depth: float = 0., duration: float | timedelta = None, runtime: float | timedelta = None,
                  tank: int = 0) -> None:
         self.depth: float = depth / 1.

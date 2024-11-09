@@ -9,7 +9,7 @@ YABAI documentation
 YABAI (Yet Another Bühlmann Algorithm Implementation) is a Python package to plan scuba dives using the Bühlmann ZH-L16(A, B or C) models
 
 Disclaimer
-----------
+==========
 
 This project is intended only for academic purposes.
 

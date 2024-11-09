@@ -12,6 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 ########################################################################################################################
 
+"""Custom exceptions"""
+
 
 class InterpolationError(Exception):
     """Interpolation error"""

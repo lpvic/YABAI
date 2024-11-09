@@ -12,6 +12,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 ########################################################################################################################
 
+"""General constants definitions"""
+
+
 import numpy as np
 
 ZH_L16 = {

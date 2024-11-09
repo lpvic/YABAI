@@ -12,6 +12,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 ########################################################################################################################
 
+"""Tank and gas definitions."""
+
+
 class Gas:
     """Gas mix contained in the scuba tank.
 
