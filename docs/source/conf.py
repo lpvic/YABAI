@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path('.').resolve().parents[1] / 'src'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'YABAI'
+# noinspection PyShadowingBuiltins
 copyright = '2024, Luis Pedro Vicente Matilla'
 author = 'Luis Pedro Vicente Matilla'
 release = 'v0.1.1'
