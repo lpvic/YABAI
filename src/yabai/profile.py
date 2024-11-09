@@ -14,23 +14,46 @@ from .exceptions import InterpolationError
 
 @dataclass
 class Parameters:
+    """Dive profile general parameters storage."""
+
     last_stop_depth: float = 3
+    """Depth for the last decompression stop."""
+
     stop_depth_incr: float = 3
+    """Depth difference between decompression stops."""
+
     safety_stop_depth: float = 5
+    """Depth for the safety stop."""
+
     safety_stop_duration: float = 3
+    """Duration of the safety stop."""
 
     v_asc: float = 10
+    """Ascent speed."""
+
     v_desc: float = 20
+    """Descent speed."""
 
     own_descent_sac: float = 20
+    """Diver SAC (Surface Air Consumption) during the descent phase."""
+
     own_bottom_sac: float = 20
+    """Diver SAC (Surface Air Consumption) during the bottom phase."""
+
     own_ascent_sac: float = 17
+    """Diver SAC (Surface Air Consumption) during the ascent phase."""
+
     buddy_ascent_sac: float = 17
+    """Buddy SAC (Surface Air Consumption) during the ascent phase."""
 
     gf_high: float = 1.
+    """Gradient factor high."""
+
     gf_low: float = 1.
+    """Gradient factor low."""
 
     calc_ascent: bool = True
+    """"""
     calc_descent: bool = True
     deco_stops: bool = True
     safety_stop: bool = True

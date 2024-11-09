@@ -1,6 +1,5 @@
 class Gas:
-    """
-    Class representing gas mixtures.
+    """Gas mix contained in the scuba tank.
 
     Args:
         o2: Oxigen content in the gas mixture, expressed in percentage, defaults to 21.
@@ -13,8 +12,7 @@ class Gas:
         self._N2: int = 100 - o2 - he
 
     def ppO2(self, depth: float) -> float:
-        """
-        Calculates the oxigen partial pressure of the gas mix at a given depth.
+        """Calculates the oxigen partial pressure of the gas mix at a given depth.
 
         Args:
             depth: Depth to calculate oxigen partial pressure of the gas mix (in meters).
@@ -26,8 +24,7 @@ class Gas:
         return pabs * self._O2 / 100
 
     def ppN2(self, depth: float) -> float:
-        """
-        Calculates the nitrogen partial pressure of the gas mix at a given depth.
+        """Calculates the nitrogen partial pressure of the gas mix at a given depth.
 
         Args:
             depth: Depth to calculate nitrogen partial pressure of the gas mix (in meters).
@@ -39,8 +36,7 @@ class Gas:
         return pabs * self._N2 / 100
 
     def ppHe(self, depth: float) -> float:
-        """
-        Calculates the hellium partial pressure of the gas mix at a given depth.
+        """Calculates the hellium partial pressure of the gas mix at a given depth.
 
         Args:
             depth: Depth to calculate hellium partial pressure of the gas mix (in meters).
@@ -52,8 +48,7 @@ class Gas:
         return pabs * self._He / 100
 
     def mod(self, pp_o2=1.4) -> float:
-        """
-        Calculates the Maximum Operating Depth (MOD) of the gas mix at a given oxigen partial pressure.
+        """Calculates the Maximum Operating Depth (MOD) of the gas mix at a given oxigen partial pressure.
 
         Args:
             pp_o2: Oxigen partial pressure to calculate MOD.
@@ -65,44 +60,32 @@ class Gas:
 
     @property
     def O2(self) -> int:
-        """
-        Oxigen content of the gas mix (in percentage).
-        """
+        """Oxigen content of the gas mix (in percentage)."""
         return self._O2
 
     @property
     def He(self) -> int:
-        """
-        Hellium content of the gas mix (in percentage).
-        """
+        """Hellium content of the gas mix (in percentage)."""
         return self._He
 
     @property
     def N2(self) -> int:
-        """
-        Nitrogen content of the gas mix (in percentage).
-        """
+        """Nitrogen content of the gas mix (in percentage)."""
         return self._N2
 
     @property
     def fO2(self) -> float:
-        """
-        Oxigen fraction of the gas mix (decimal).
-        """
+        """Oxigen fraction of the gas mix (decimal)."""
         return self._O2 / 100.
 
     @property
     def fN2(self) -> float:
-        """
-        Nitrogen fraction of the gas mix (decimal).
-        """
+        """Nitrogen fraction of the gas mix (decimal)."""
         return self._N2 / 100.
 
     @property
     def fHe(self) -> float:
-        """
-        Hellium fraction of the gas mix (decimal).
-        """
+        """Hellium fraction of the gas mix (decimal)."""
         return self._He / 100.
 
     def __str__(self) -> str:
@@ -118,8 +101,7 @@ class Gas:
 
 
 class Tank:
-    """
-    Class reperesenting a scuba tank.
+    """A scuba tank.
 
     Args:
         start_pressure: Tank start pressure.
@@ -134,14 +116,10 @@ class Tank:
 
     @property
     def gas(self) -> Gas:
-        """
-        Gas mix in the tank.
-        """
+        """Gas mix in the tank."""
         return self._gas
 
     @property
     def size(self) -> int:
-        """
-        Size of the tank, in liters.
-        """
+        """Size of the tank, in liters."""
         return self._size

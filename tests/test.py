@@ -1,4 +1,5 @@
-from src.yabai import *
+from datetime import timedelta
+from src.yabai import Parameters, Tank, Gas, Waypoint, Profile
 
 # Initialize setup object
 params = Parameters(dt=timedelta(seconds=1), gf_low=1., gf_high=1., last_stop_depth=3, gas_switch_mode='stop')

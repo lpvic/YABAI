@@ -1,6 +1,5 @@
 import numpy as np
 
-# Coefficients for Bühlmann ZH-L16
 ZH_L16 = {
     'C': {
         'N2': {
@@ -17,17 +16,18 @@ ZH_L16 = {
                            0.5189, 0.5181, 0.5176, 0.5172, 0.5119]),
             'b': np.array([0.4770, 0.5747, 0.6527, 0.7223, 0.7582, 0.7957, 0.8279, 0.8553, 0.8757, 0.8903, 0.8997,
                            0.9073, 0.9122, 0.9171, 0.9217, 0.9267])}}}
-"""Bülhmann ZH-L16 coefficients"""
+"""Bülhmann ZH-L16 coefficients."""
 
-# NOAA table for CNS calculation
 NOAA_CNS_POINTS = {0.5: 900., 0.6: 720., 0.7: 570., 0.8: 450., 0.9: 360., 1.0: 300., 1.1: 270, 1.2: 240, 1.3: 210.,
                    1.4: 180., 1.5: 180., 1.6: 150.}
+"""NOAA curve points for CNS calculations."""
+
 NOAA_CNS_EQUATIONS = {(0.5, 0.6): (-1800., 1800.), (0.6, 0.7): (-1500., 1620.), (0.7, 0.8): (-1200., 1410.),
                       (0.8, 0.9): (-900., 1170.), (0.9, 1.1): (-600., 900.), (1.1, 1.5): (-300., 570.),
                       (1.5, 1.6): (-750., 1245.)}
+"""Linealized form of the NOAA CNS curve."""
 
-# Water vapour pressure
 PW = 0.0567
-"""Water vapour pressure"""
+"""float: Water vapour pressure."""
 
 _GAS_SWITCH_MODE_VALUES = {'manual', 'stop', 'depth'}
