@@ -3,12 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-yabai documentation
+YABAI documentation
 ===================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+YABAI (Yet Another Bühlmann Algorithm Implementation) is a Python package to plan scuba dives using the Bühlmann ZH-L16(A, B or C) models
 
 
 .. toctree::

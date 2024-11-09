@@ -67,15 +67,25 @@ class Parameters:
     """Gradient factor low."""
 
     calc_ascent: bool = True
-    """"""
+    """States wether the ascent phase shall be calculated."""
+
     calc_descent: bool = True
+    """States wether the descent phase shall be calculated."""
+
     deco_stops: bool = True
+    """States wether deco stops shall be added during the ascent phase."""
+
     safety_stop: bool = True
+    """FStates wether a safety stop shall be added at the end of the ascent phase."""
 
     gas_switch_mode: str = 'stop'
+    """Selects the gas switch mode. Allowed values: {'manual', 'stop', 'depth'}"""
+
     gas_switch_duration: float = 60
+    """Duration of a gas switch."""
 
     dt: timedelta = timedelta(seconds=1)
+    """Time interval for profile integration"""
 
     def __post_init__(self):
         if not (self.gas_switch_mode in _GAS_SWITCH_MODE_VALUES):
