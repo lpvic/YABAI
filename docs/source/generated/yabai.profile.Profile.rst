@@ -12,6 +12,7 @@
    
    .. rubric:: Methods
 
+
    .. autosummary::
         ~Profile.plot
         ~Profile.plot_ceiling

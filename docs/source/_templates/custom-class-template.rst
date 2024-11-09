@@ -13,7 +13,7 @@
    {%- if methods %}
    {%- if not ((methods|length == 1) and (methods[0] == '__init__')) %}
    .. rubric:: {{ _('Methods') }}
-   {%- endif %}
+
 
    .. autosummary::
    {%- for item in methods %}
@@ -22,9 +22,11 @@
       {%- endif %}
    {%- endfor %}
    {%- endif %}
+   {%- endif %}
    {%- endblock %}
 
    {% block attributes %}
+
    {%- if attributes %}
    .. rubric:: {{ _('Attributes') }}
 

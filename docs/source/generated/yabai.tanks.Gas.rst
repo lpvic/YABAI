@@ -12,6 +12,7 @@
    
    .. rubric:: Methods
 
+
    .. autosummary::
         ~Gas.mod
         ~Gas.ppHe
