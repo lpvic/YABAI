@@ -10,7 +10,7 @@ YABAI (Yet Another Bühlmann Algorithm Implementation) is a Python package to pl
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
    api
