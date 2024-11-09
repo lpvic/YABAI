@@ -32,7 +32,7 @@ for your use of the information provided by this application or linked from thes
   - Add theoretical background
   - Add calculation logic description
 
-### v0.1.2
+### v0.2.0
 - New features
   - Add Time To Surface (TTS) calculation.
   - Add No Deco Time (NDT) calculation.
@@ -43,7 +43,7 @@ for your use of the information provided by this application or linked from thes
 - Documentation
   - None
 
-### v0.2.0
+### v0.2.1
 - New features
   - Add reports creation.
 - Improvements

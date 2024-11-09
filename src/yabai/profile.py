@@ -492,8 +492,8 @@ class Profile:
 
         for g in ['N2', 'He']:
             p0 = prev_ip.load_ig[g]
-            f_ig = self._tanks[prev_ip.waypoint.tank].gas.fN2 if g == 'N2' else\
-                self._tanks[prev_ip.waypoint.tank].gas.fHe
+            f_ig = self._tanks[prev_ip.waypoint.tank].gas.fN2 \
+                if g == 'N2' else self._tanks[prev_ip.waypoint.tank].gas.fHe
             pi = np.full(16, f_ig * (p_amb - PW))
             r = (ip.waypoint.depth - prev_ip.waypoint.depth) / (prev_ip.waypoint.duration.seconds / 60)
             r = r * f_ig / 10.
