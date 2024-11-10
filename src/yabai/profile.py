@@ -1,3 +1,22 @@
+########################################################################################################
+# YABAI - Yet Another Bühlmann Algorithm Implemenattion
+# Copyright (C) 2024 Luis Pedro Vicente Matilla
+#
+# YABAI is free software: you can redistribute it and/or modify it under the terms of the Affero GNU
+# General Public License as published by the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# YABAI is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the Affero GNU General
+# Public License for more details.
+#
+# You should have received a copy of the Affero GNU General Public License along with YABAI. If not,
+# see <https://www.gnu.org/licenses/>.
+########################################################################################################
+
+"""Dive profile definitions"""
+
+
 import itertools
 from math import ceil, floor, log
 from dataclasses import dataclass
@@ -6,43 +25,94 @@ from datetime import timedelta
 import numpy as np
 from matplotlib import pyplot as plt
 
-from .constants import ZH_L16, noaa_cns_equations, pw
+from .constants import ZH_L16, NOAA_CNS_EQUATIONS, PW
+from .constants import _GAS_SWITCH_MODE_VALUES
 from .tanks import Tank
 from .exceptions import InterpolationError
 
 
 @dataclass
 class Parameters:
+    """Dive profile general parameters storage."""
+
     last_stop_depth: float = 3
+    """Depth for the last decompression stop."""
+
     stop_depth_incr: float = 3
+    """Depth difference between decompression stops."""
+
     safety_stop_depth: float = 5
+    """Depth for the safety stop."""
+
     safety_stop_duration: float = 3
+    """Duration of the safety stop."""
 
     v_asc: float = 10
+    """Ascent speed."""
+
     v_desc: float = 20
+    """Descent speed."""
 
     own_descent_sac: float = 20
+    """Diver SAC (Surface Air Consumption) during the descent phase."""
+
     own_bottom_sac: float = 20
+    """Diver SAC (Surface Air Consumption) during the bottom phase."""
+
     own_ascent_sac: float = 17
+    """Diver SAC (Surface Air Consumption) during the ascent phase."""
+
     buddy_ascent_sac: float = 17
+    """Buddy SAC (Surface Air Consumption) during the ascent phase."""
 
     gf_high: float = 1.
+    """Gradient factor high."""
+
     gf_low: float = 1.
+    """Gradient factor low."""
 
     calc_ascent: bool = True
-    calc_descent: bool = True
-    deco_stops: bool = True
-    safety_stop: bool = True
+    """States wether the ascent phase shall be calculated."""
 
-    gas_switch: str = 'depth'  # 'depth' | 'stop' | 'manual'
+    calc_descent: bool = True
+    """States wether the descent phase shall be calculated."""
+
+    deco_stops: bool = True
+    """States wether deco stops shall be added during the ascent phase."""
+
+    safety_stop: bool = True
+    """FStates wether a safety stop shall be added at the end of the ascent phase."""
+
+    gas_switch_mode: str = 'stop'
+    """Selects the gas switch mode. Allowed values: {'manual', 'stop', 'depth'}"""
+
     gas_switch_duration: float = 60
+    """Duration of a gas switch."""
 
     dt: timedelta = timedelta(seconds=1)
+    """Time interval for profile integration"""
+
+    def __post_init__(self):
+        if not (self.gas_switch_mode in _GAS_SWITCH_MODE_VALUES):
+            raise ValueError('Incorrect gas switch mode in parameters')
+        if self.dt.seconds < 1:
+            raise ValueError('Integration time interval must not be shorter than 1s')
 
 
 class Waypoint:
-    def __init__(self, depth: float = 0., duration: float | timedelta = None, runtime: float | timedelta = None,
-                 tank: int = 0) -> None:
+    """Dive profile waypoints.
+
+    A waypoint marks a change in the dive profile, i.e. from descent to bottom phases, the start of a
+     deco stop, etc.
+
+    Args:
+        depth: Depth of the waypoint.
+        duration: Time interval until the next waypoint.
+        runtime: Start time counted from the beginning of the dive.
+        tank: Tank used during until the next waypoint
+    """
+    def __init__(self, depth: float = 0., duration: float | timedelta = None,
+                 runtime: float | timedelta = None, tank: int = 0) -> None:
         self.depth: float = depth / 1.
         self.duration: timedelta
         self.runtime: timedelta
@@ -72,38 +142,73 @@ class Waypoint:
 
 
 class IntegrationPoint:
+    """Dive profile integration points.
+
+    An integration point contains the dive profile information at every calculated point.
+
+    Args:
+        waypoint: :py:class:`Waypoint` defining the basic data for calculation.
+    """
     def __init__(self, waypoint: Waypoint) -> None:
         self.waypoint = waypoint
+        """Waypoint with the depth, duration and runtime of the integration point."""
+
         self.tank_pressure = []
-        self.load_ig = {'N2': np.full(16, 0.79 * (1 - pw)), 'He': np.zeros(16)}
+        """Pressure of all the tanks at the integration point, in bar."""
+
+        self.load_ig = {'N2': np.full(16, 0.79 * (1 - PW)), 'He': np.zeros(16)}
+        """Absolute pressure of inert gas loading in every compartment at the integration point, in
+         ATA."""
+
         self.ceilings = np.ones(16)
+        """Calculated ceilings for all the compartments at the integration point, in meters."""
+
         self.otu = 0.
+        """Oxigen Toxicity Units (OTU) at the integration point."""
+
         self.otu_cum = 0.
+        """Accumulated Oxigen Toxicity Units (OTU) at the calculated point."""
+
         self.cns = 0.
+        """Central Nervous System oxigen toxicity (CNS) at the integration point, in percentage."""
+
         self.cns_cum = 0.
+        """Accumulated Central Nervous System oxigen toxicity (CNS) at the integration point, in
+         percentage."""
 
     @property
     def p_amb(self) -> float:
+        """Absolute ambient pressure at the depth of the integration point, in ATA"""
         return (self.waypoint.depth / 10.) + 1.
 
     @property
     def ceiling(self) -> float:
+        """Ceiling at the integration point, in meters"""
         if np.max(self.ceilings) > 0.:
             return np.max(self.ceilings)
         else:
             return 0.
 
     def __str__(self) -> str:
-        return ('IntegrationPoint(depth={depth:.5f}, duration={duration}, runtime={runtime}, tank={tank},'
-                ' ceiling={ceiling:.1f}, tank_pressure={tank_pressure}, cns={cns}%, otu={otu})'
-                .format(depth=self.waypoint.depth, duration=self.waypoint.duration, runtime=self.waypoint.runtime,
-                        tank=self.waypoint.tank, ceiling=self.ceiling,
-                        tank_pressure=[int('{:.0f}'.format(p)) for p in self.tank_pressure],
-                        cns=ceil(self.cns_cum * 100), otu=ceil(self.otu_cum)))
+        return ('IntegrationPoint(depth={depth:.5f}, duration={duration}, runtime={runtime},'
+                ' tank={tank}, ceiling={ceiling:.1f}, tank_pressure={tank_pressure}, cns={cns}%,'
+                ' otu={otu})'.format(depth=self.waypoint.depth, duration=self.waypoint.duration,
+                                     runtime=self.waypoint.runtime, tank=self.waypoint.tank,
+                                     ceiling=self.ceiling, tank_pressure=[int('{:.0f}'.format(p))
+                                                                          for p in self.tank_pressure],
+                                     cns=ceil(self.cns_cum * 100), otu=ceil(self.otu_cum)))
 
 
 class Profile:
-    def __init__(self, waypoints: list[Waypoint], tanks: list[Tank], params: Parameters = Parameters()) -> None:
+    """Dive profile.
+
+    Args:
+        waypoints: List of :py:class:`Waypoint` defining the different profile phases.
+        tanks: List of :py:class:`yabai.tanks.Tank` used during the dive.
+        params: :py:class:`Parameters` of the dive.
+    """
+    def __init__(self, waypoints: list[Waypoint], tanks: list[Tank],
+                 params: Parameters = Parameters()) -> None:
         self._params: Parameters = params
         self._tanks: list[Tank] = tanks
         self._waypoints: list[Waypoint] = []
@@ -111,7 +216,8 @@ class Profile:
 
         self._complete_waypoints(waypoints, self._params.calc_descent)
         self._calculate_bottom()
-        deco_dive = self._calculate_direct_ascent(0, self._integration_points[-1], False)[-1].ceiling > 0.
+        deco_dive = self._calculate_direct_ascent(0, self._integration_points[-1],
+                                                  False)[-1].ceiling > 0.
         if deco_dive:
             self._calculate_deco_ascent(0., self._integration_points[-1])
         else:
@@ -122,13 +228,16 @@ class Profile:
 
     @property
     def waypoints(self) -> list[Waypoint]:
+        """List of given and calculated waypoints."""
         return self._waypoints
 
     @property
     def integration_points(self) -> list[IntegrationPoint]:
+        """List of calculated integration points."""
         return self._integration_points
 
     def plot(self) -> None:
+        """Plots the dive profile along with the ceiling."""
         depth = []
         ceiling = []
         runtime = []
@@ -142,6 +251,7 @@ class Profile:
         plt.show()
 
     def plot_waypoints(self) -> None:
+        """Plots the dive profile using the waypoints."""
         depth = []
         runtime = []
         for wp in self._waypoints:
@@ -152,6 +262,7 @@ class Profile:
         plt.show()
 
     def plot_integration_points(self) -> None:
+        """Plots the dive profile only using the integration points."""
         depth = []
         runtime = []
         for ip in self._integration_points:
@@ -162,6 +273,12 @@ class Profile:
         plt.show()
 
     def plot_compartment(self, gas: str, compartment: int) -> None:
+        """Plots the loading of the selected gas for the given compartment.
+
+        Args:
+            gas: Gas to plot. Allowed values: {'N2' | 'He'}
+            compartment: Compartment to plot. Allowed values: {1 .. 16}
+        """
         p_ig = []
         runtime = []
         for ip in self._integration_points:
@@ -172,6 +289,11 @@ class Profile:
         plt.show()
 
     def plot_compartments(self, gas: str) -> None:
+        """Plots the loading of the selected gas for the all the compartments.
+
+        Args:
+            gas: Gas to plot. Allowed values: {'N2' | 'He'}
+        """
         colors = 'bgrcmkbgrcmkbgrc'
         for c in range(16):
             p_ig = []
@@ -184,6 +306,7 @@ class Profile:
         plt.show()
 
     def plot_ceiling(self) -> None:
+        """Plots the ceiling of dive."""
         ceiling = []
         runtime = []
         for ip in self._integration_points:
@@ -194,6 +317,7 @@ class Profile:
         plt.show()
 
     def plot_ceilings(self) -> None:
+        """Plots the ceiling of all the compartments."""
         colors = 'bgrcmkbgrcmkbgrc'
         for c in range(16):
             ceilings = []
@@ -211,7 +335,8 @@ class Profile:
             time_to_bottom = timedelta(minutes=wps[0].depth / self._params.v_desc)
             if desc:
                 self._waypoints.append(Waypoint(0, time_to_bottom, timedelta(seconds=0)))
-                self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration, self._waypoints[0].duration))
+                self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration,
+                                                self._waypoints[0].duration))
             else:
                 self._waypoints.append(Waypoint(wps[0].depth, wps[0].duration, timedelta(seconds=0)))
         else:
@@ -226,20 +351,23 @@ class Profile:
 
             if wp.depth > prev_wp.depth:
                 desc_time = timedelta(minutes=(wp.depth - prev_wp.depth) / self._params.v_desc)
-                self._waypoints.append(Waypoint(prev_wp.depth, desc_time,
-                                                prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
+                self._waypoints.append(
+                    Waypoint(prev_wp.depth, desc_time,
+                             prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
             elif wp.depth < prev_wp.depth:
                 asc_time = timedelta(minutes=(prev_wp.depth - wp.depth) / self._params.v_asc)
-                self._waypoints.append(Waypoint(prev_wp.depth, asc_time,
-                                                prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
+                self._waypoints.append(
+                    Waypoint(prev_wp.depth, asc_time,
+                             prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
 
             prev_wp = self._waypoints[-1]
             if idx == (len(waypoints) - 1):
                 duration = timedelta(seconds=0)
             else:
                 duration = wp.duration
-            self._waypoints.append(Waypoint(wp.depth, duration,
-                                            prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
+            self._waypoints.append(
+                Waypoint(wp.depth, duration,
+                         prev_wp.runtime.seconds / 60 + prev_wp.duration.seconds / 60))
 
     def _calculate_bottom(self) -> None:
         t = 0
@@ -277,13 +405,15 @@ class Profile:
         out = []
         while prev_ip.waypoint.depth > depth:
             t = t + self._params.dt.seconds
-            new_wp = Waypoint(depth=round(prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.seconds / 60),
-                                          1),
-                              duration=self._params.dt, runtime=timedelta(seconds=t), tank=prev_ip.waypoint.tank)
+            new_wp = Waypoint(
+                depth=round(
+                    prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.seconds / 60), 1),
+                duration=self._params.dt, runtime=timedelta(seconds=t), tank=prev_ip.waypoint.tank)
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
-            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
+            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip,
+                                                                 self._params.own_ascent_sac)
             new_ip.cns = self._calculate_cns(new_ip, prev_ip)
             new_ip.cns_cum = prev_ip.cns_cum + new_ip.cns
             new_ip.otu = self._calculate_otu(new_ip, prev_ip)
@@ -292,20 +422,24 @@ class Profile:
             out.append(new_ip)
 
         if append:
-            duration = out[-1].waypoint.runtime.seconds - out[0].waypoint.runtime.seconds + self._params.dt.seconds
+            duration = out[-1].waypoint.runtime.seconds
+            duration = duration - out[0].waypoint.runtime.seconds + self._params.dt.seconds
             self._waypoints[-1].duration = timedelta(seconds=duration)
-            self._waypoints.append(Waypoint(out[-1].waypoint.depth, 0, out[-1].waypoint.runtime, out[-1].waypoint.tank))
+            self._waypoints.append(
+                Waypoint(out[-1].waypoint.depth, 0, out[-1].waypoint.runtime,
+                         out[-1].waypoint.tank))
             self._integration_points = self._integration_points + out
 
         return out
 
-    def _calculate_regular_ascent(self, depth: float, ip: IntegrationPoint, append: bool = True)\
-            -> list[IntegrationPoint]:
+    def _calculate_regular_ascent(self, depth: float, ip: IntegrationPoint,
+                                  append: bool = True) -> list[IntegrationPoint]:
         prev_ip = ip
         if depth > self._params.safety_stop_depth:
             segments = [self._calculate_direct_ascent(depth, prev_ip, False)]
         else:
-            segments = [self._calculate_direct_ascent(self._params.safety_stop_depth, prev_ip, False)]
+            segments = [self._calculate_direct_ascent(self._params.safety_stop_depth, prev_ip,
+                                                      False)]
 
             prev_ip = segments[-1][-1]
             t = prev_ip.waypoint.runtime.seconds
@@ -318,7 +452,8 @@ class Profile:
                 new_ip = IntegrationPoint(new_wp)
                 new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
                 new_ip.ceilings = self._calculate_ceilings(new_ip)
-                new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
+                new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip,
+                                                                     self._params.own_ascent_sac)
                 new_ip.cns = self._calculate_cns(new_ip, prev_ip)
                 new_ip.cns_cum = prev_ip.cns_cum + new_ip.cns
                 new_ip.otu = self._calculate_otu(new_ip, prev_ip)
@@ -332,14 +467,17 @@ class Profile:
 
         if append:
             for s in segments:
-                duration = s[-1].waypoint.runtime.seconds - s[0].waypoint.runtime.seconds + self._params.dt.seconds
+                duration = s[-1].waypoint.runtime.seconds
+                duration = duration - s[0].waypoint.runtime.seconds + self._params.dt.seconds
                 self._waypoints[-1].duration = timedelta(seconds=duration)
-                self._waypoints.append(Waypoint(s[-1].waypoint.depth, 0, s[-1].waypoint.runtime, s[-1].waypoint.tank))
+                self._waypoints.append(Waypoint(s[-1].waypoint.depth, 0, s[-1].waypoint.runtime,
+                                                s[-1].waypoint.tank))
                 self._integration_points = self._integration_points + s
 
         return list(itertools.chain(*segments))
 
-    def _calculate_deco_ascent(self, depth: float, ip: IntegrationPoint, append: bool = True) -> list[IntegrationPoint]:
+    def _calculate_deco_ascent(self, depth: float, ip: IntegrationPoint,
+                               append: bool = True) -> list[IntegrationPoint]:
         prev_ip = ip
         next_deco_stop = self._calculate_next_deco_stop(prev_ip.ceiling)
         next_gas_stop = self._calculate_next_gas_stop(prev_ip.waypoint.depth)
@@ -352,13 +490,15 @@ class Profile:
             out = []
             while prev_ip.waypoint.depth > next_stop:
                 t = t + self._params.dt.seconds
-                new_depth = round(prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.seconds / 60), 1)
-                new_wp = Waypoint(depth=new_depth, duration=self._params.dt, runtime=timedelta(seconds=t),
-                                  tank=prev_ip.waypoint.tank)
+                new_depth = round(
+                    prev_ip.waypoint.depth - (self._params.v_asc * self._params.dt.seconds / 60), 1)
+                new_wp = Waypoint(depth=new_depth, duration=self._params.dt,
+                                  runtime=timedelta(seconds=t), tank=prev_ip.waypoint.tank)
                 new_ip = IntegrationPoint(new_wp)
                 new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
                 new_ip.ceilings = self._calculate_ceilings(new_ip)
-                new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
+                new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip,
+                                                                     self._params.own_ascent_sac)
                 new_ip.cns = self._calculate_cns(new_ip, prev_ip)
                 new_ip.cns_cum = prev_ip.cns_cum + new_ip.cns
                 new_ip.otu = self._calculate_otu(new_ip, prev_ip)
@@ -388,23 +528,27 @@ class Profile:
 
         if append:
             for s in segments:
-                duration = s[-1].waypoint.runtime.seconds - s[0].waypoint.runtime.seconds + self._params.dt.seconds
+                duration = s[-1].waypoint.runtime.seconds
+                duration = duration - s[0].waypoint.runtime.seconds + self._params.dt.seconds
                 self._waypoints[-1].duration = timedelta(seconds=duration)
-                self._waypoints.append(Waypoint(s[-1].waypoint.depth, 0, s[-1].waypoint.runtime, s[-1].waypoint.tank))
+                self._waypoints.append(Waypoint(s[-1].waypoint.depth, 0,
+                                                s[-1].waypoint.runtime, s[-1].waypoint.tank))
                 self._integration_points = self._integration_points + s
 
         return list(itertools.chain(*segments))
 
-    def _calculate_compartments(self, ip: IntegrationPoint, prev_ip: IntegrationPoint) -> dict[str, float]:
+    def _calculate_compartments(self, ip: IntegrationPoint,
+                                prev_ip: IntegrationPoint) -> dict[str, float]:
         out = {}
         p_amb = ip.p_amb
 
         for g in ['N2', 'He']:
             p0 = prev_ip.load_ig[g]
-            f_ig = self._tanks[prev_ip.waypoint.tank].gas.fN2 if g == 'N2' else\
-                self._tanks[prev_ip.waypoint.tank].gas.fHe
-            pi = np.full(16, f_ig * (p_amb - pw))
-            r = (((ip.waypoint.depth - prev_ip.waypoint.depth) / prev_ip.waypoint.duration.seconds / 60) * f_ig) / 10
+            f_ig = self._tanks[prev_ip.waypoint.tank].gas.fN2 \
+                if g == 'N2' else self._tanks[prev_ip.waypoint.tank].gas.fHe
+            pi = np.full(16, f_ig * (p_amb - PW))
+            r = (ip.waypoint.depth - prev_ip.waypoint.depth) / (prev_ip.waypoint.duration.seconds / 60)
+            r = r * f_ig / 10.
             k = log(2) / ZH_L16['C'][g]['ht']
 
             # Schreiner equation
@@ -469,10 +613,11 @@ class Profile:
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
-            if (((self._params.gas_switch == 'stop') or (self._params.gas_switch == 'depth')) and
-                    (stop_time >= (self._params.gas_switch_duration - 1))):
+            if (((self._params.gas_switch_mode == 'stop') or (self._params.gas_switch_mode == 'depth'))
+                    and (stop_time >= (self._params.gas_switch_duration - 1))):
                 new_ip.waypoint.tank = self._select_tank(new_ip.waypoint.depth)
-            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
+            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip,
+                                                                 self._params.own_ascent_sac)
             new_ip.cns = self._calculate_cns(new_ip, prev_ip)
             new_ip.cns_cum = prev_ip.cns_cum + new_ip.cns
             new_ip.otu = self._calculate_otu(new_ip, prev_ip)
@@ -494,9 +639,10 @@ class Profile:
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
-            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
-            if (((self._params.gas_switch == 'stop') or (self._params.gas_switch == 'depth')) and
-                    (stop_time >= (self._params.gas_switch_duration - 1))):
+            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip,
+                                                                 self._params.own_ascent_sac)
+            if (((self._params.gas_switch_mode == 'stop') or (self._params.gas_switch_mode == 'depth'))
+                    and (stop_time >= (self._params.gas_switch_duration - 1))):
                 new_ip.waypoint.tank = self._select_tank(new_ip.waypoint.depth)
             new_ip.cns = self._calculate_cns(new_ip, prev_ip)
             new_ip.cns_cum = prev_ip.cns_cum + new_ip.cns
@@ -509,7 +655,8 @@ class Profile:
 
         return out
 
-    def _calculate_tank_pressure(self, ip: IntegrationPoint, prev_ip: IntegrationPoint, sac: float) -> list[float]:
+    def _calculate_tank_pressure(self, ip: IntegrationPoint, prev_ip: IntegrationPoint,
+                                 sac: float) -> list[float]:
         rmv = sac * (ip.p_amb + prev_ip.p_amb) / 2
         bar_min = rmv / self._tanks[prev_ip.waypoint.tank].size
         consumption = bar_min * prev_ip.waypoint.duration.seconds / 60
@@ -550,7 +697,8 @@ class Profile:
             new_ip = IntegrationPoint(new_wp)
             new_ip.load_ig = self._calculate_compartments(new_ip, prev_ip)
             new_ip.ceilings = self._calculate_ceilings(new_ip)
-            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip, self._params.own_ascent_sac)
+            new_ip.tank_pressure = self._calculate_tank_pressure(new_ip, prev_ip,
+                                                                 self._params.own_ascent_sac)
             new_ip.cns = self._calculate_cns(new_ip, prev_ip)
             new_ip.cns_cum = prev_ip.cns_cum + new_ip.cns
             new_ip.otu = self._calculate_otu(new_ip, prev_ip)
@@ -604,7 +752,7 @@ class Profile:
 
         m = 0.
         b = 0.
-        for k, v in noaa_cns_equations.items():
+        for k, v in NOAA_CNS_EQUATIONS.items():
             if (pp_o2_ini >= k[0]) and (pp_o2_ini <= k[1]):
                 m = v[0]
                 b = v[1]
