@@ -204,7 +204,7 @@ class Profile:
 
     Args:
         waypoints: List of :py:class:`Waypoint` defining the different profile phases.
-        tanks: List of :py:class:`tanks.Tank` used during the dive.
+        tanks: List of :py:class:`yabai.tanks.Tank` used during the dive.
         params: :py:class:`Parameters` of the dive.
     """
     def __init__(self, waypoints: list[Waypoint], tanks: list[Tank],
