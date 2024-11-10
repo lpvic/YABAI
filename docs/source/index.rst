@@ -13,4 +13,7 @@ YABAI (Yet Another Bühlmann Algorithm Implementation) is a Python package to pl
    :caption: Contents:
 
    disclaimer
+   usage
+   theory
+   implementation
    api

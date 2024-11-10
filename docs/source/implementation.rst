@@ -1,0 +1,4 @@
+IMPLEMENTATION DETAILS
+======================
+
+Lorem ipsum
