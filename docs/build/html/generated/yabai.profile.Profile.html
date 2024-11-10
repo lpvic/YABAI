@@ -97,43 +97,120 @@
 <dt class="sig sig-object py" id="yabai.profile.Profile">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">yabai.profile.</span></span><span class="sig-name descname"><span class="pre">Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waypoints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="yabai.profile.Waypoint.html#yabai.profile.Waypoint" title="yabai.profile.Waypoint"><span class="pre">Waypoint</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tanks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="yabai.tanks.Tank.html#yabai.tanks.Tank" title="yabai.tanks.Tank"><span class="pre">Tank</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="yabai.profile.Parameters.html#yabai.profile.Parameters" title="yabai.profile.Parameters"><span class="pre">Parameters</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Parameters(last_stop_depth=3,</span> <span class="pre">stop_depth_incr=3,</span> <span class="pre">safety_stop_depth=5,</span> <span class="pre">safety_stop_duration=3,</span> <span class="pre">v_asc=10,</span> <span class="pre">v_desc=20,</span> <span class="pre">own_descent_sac=20,</span> <span class="pre">own_bottom_sac=20,</span> <span class="pre">own_ascent_sac=17,</span> <span class="pre">buddy_ascent_sac=17,</span> <span class="pre">gf_high=1.0,</span> <span class="pre">gf_low=1.0,</span> <span class="pre">calc_ascent=True,</span> <span class="pre">calc_descent=True,</span> <span class="pre">deco_stops=True,</span> <span class="pre">safety_stop=True,</span> <span class="pre">gas_switch_mode='stop',</span> <span class="pre">gas_switch_duration=60,</span> <span class="pre">dt=datetime.timedelta(seconds=1))</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/yabai/profile.html#Profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Dive profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>waypoints</strong> – List of <a class="reference internal" href="yabai.profile.Waypoint.html#yabai.profile.Waypoint" title="yabai.profile.Waypoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Waypoint</span></code></a> defining the different profile phases.</p></li>
+<li><p><strong>tanks</strong> – List of <code class="xref py py-class docutils literal notranslate"><span class="pre">tanks.Tank</span></code> used during the dive.</p></li>
+<li><p><strong>params</strong> – <a class="reference internal" href="yabai.profile.Parameters.html#yabai.profile.Parameters" title="yabai.profile.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> of the dive.</p></li>
+</ul>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code>()</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.Profile.plot" title="yabai.profile.Profile.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>()</p></td>
+<td><p>Plots the dive profile along with the ceiling.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_ceiling</span></code>()</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.Profile.plot_ceiling" title="yabai.profile.Profile.plot_ceiling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_ceiling</span></code></a>()</p></td>
+<td><p>Plots the ceiling of dive.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_ceilings</span></code>()</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.Profile.plot_ceilings" title="yabai.profile.Profile.plot_ceilings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_ceilings</span></code></a>()</p></td>
+<td><p>Plots the ceiling of all the compartments.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_compartment</span></code>(gas, compartment)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.Profile.plot_compartment" title="yabai.profile.Profile.plot_compartment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_compartment</span></code></a>(gas, compartment)</p></td>
+<td><p>Plots the loading of the selected gas for the given compartment.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_compartments</span></code>(gas)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.Profile.plot_compartments" title="yabai.profile.Profile.plot_compartments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_compartments</span></code></a>(gas)</p></td>
+<td><p>Plots the loading of the selected gas for the all the compartments.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_integration_points</span></code>()</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.Profile.plot_integration_points" title="yabai.profile.Profile.plot_integration_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_integration_points</span></code></a>()</p></td>
+<td><p>Plots the dive profile only using the integration points.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_waypoints</span></code>()</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.Profile.plot_waypoints" title="yabai.profile.Profile.plot_waypoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_waypoints</span></code></a>()</p></td>
+<td><p>Plots the dive profile using the waypoints.</p></td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">integration_points</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.Profile.integration_points" title="yabai.profile.Profile.integration_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">integration_points</span></code></a></p></td>
+<td><p>List of calculated integration points.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">waypoints</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.Profile.waypoints" title="yabai.profile.Profile.waypoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">waypoints</span></code></a></p></td>
+<td><p>List of given and calculated waypoints.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py property">
+<dt class="sig sig-object py" id="yabai.profile.Profile.integration_points">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">integration_points</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="yabai.profile.IntegrationPoint.html#yabai.profile.IntegrationPoint" title="yabai.profile.IntegrationPoint"><span class="pre">IntegrationPoint</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#yabai.profile.Profile.integration_points" title="Link to this definition"></a></dt>
+<dd><p>List of calculated integration points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="yabai.profile.Profile.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/yabai/profile.html#Profile.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile.plot" title="Link to this definition"></a></dt>
+<dd><p>Plots the dive profile along with the ceiling.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="yabai.profile.Profile.plot_ceiling">
+<span class="sig-name descname"><span class="pre">plot_ceiling</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/yabai/profile.html#Profile.plot_ceiling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile.plot_ceiling" title="Link to this definition"></a></dt>
+<dd><p>Plots the ceiling of dive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="yabai.profile.Profile.plot_ceilings">
+<span class="sig-name descname"><span class="pre">plot_ceilings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/yabai/profile.html#Profile.plot_ceilings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile.plot_ceilings" title="Link to this definition"></a></dt>
+<dd><p>Plots the ceiling of all the compartments.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="yabai.profile.Profile.plot_compartment">
+<span class="sig-name descname"><span class="pre">plot_compartment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compartment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/yabai/profile.html#Profile.plot_compartment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile.plot_compartment" title="Link to this definition"></a></dt>
+<dd><p>Plots the loading of the selected gas for the given compartment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gas</strong> – Gas to plot. Allowed values: {‘N2’ | ‘He’}</p></li>
+<li><p><strong>compartment</strong> – Compartment to plot. Allowed values: {1 .. 16}</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="yabai.profile.Profile.plot_compartments">
+<span class="sig-name descname"><span class="pre">plot_compartments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/yabai/profile.html#Profile.plot_compartments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile.plot_compartments" title="Link to this definition"></a></dt>
+<dd><p>Plots the loading of the selected gas for the all the compartments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gas</strong> – Gas to plot. Allowed values: {‘N2’ | ‘He’}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="yabai.profile.Profile.plot_integration_points">
+<span class="sig-name descname"><span class="pre">plot_integration_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/yabai/profile.html#Profile.plot_integration_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile.plot_integration_points" title="Link to this definition"></a></dt>
+<dd><p>Plots the dive profile only using the integration points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="yabai.profile.Profile.plot_waypoints">
+<span class="sig-name descname"><span class="pre">plot_waypoints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/yabai/profile.html#Profile.plot_waypoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.Profile.plot_waypoints" title="Link to this definition"></a></dt>
+<dd><p>Plots the dive profile using the waypoints.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="yabai.profile.Profile.waypoints">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">waypoints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="yabai.profile.Waypoint.html#yabai.profile.Waypoint" title="yabai.profile.Waypoint"><span class="pre">Waypoint</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#yabai.profile.Profile.waypoints" title="Link to this definition"></a></dt>
+<dd><p>List of given and calculated waypoints.</p>
+</dd></dl>
+
 </dd></dl>
 
 </section>

@@ -109,6 +109,7 @@ class Waypoint:
         depth: Depth of the waypoint.
         duration: Time interval until the next waypoint.
         runtime: Start time counted from the beginning of the dive.
+        tank: Tank used during until the next waypoint
     """
     def __init__(self, depth: float = 0., duration: float | timedelta = None,
                  runtime: float | timedelta = None, tank: int = 0) -> None:
@@ -141,22 +142,48 @@ class Waypoint:
 
 
 class IntegrationPoint:
+    """Dive profile integration points.
+
+    An integration point contains the dive profile information at every calculated point.
+
+    Args:
+        waypoint: :py:class:`Waypoint` defining the basic data for calculation.
+    """
     def __init__(self, waypoint: Waypoint) -> None:
         self.waypoint = waypoint
+        """Waypoint with the depth, duration and runtime of the integration point."""
+
         self.tank_pressure = []
+        """Pressure of all the tanks at the integration point, in bar."""
+
         self.load_ig = {'N2': np.full(16, 0.79 * (1 - PW)), 'He': np.zeros(16)}
+        """Absolute pressure of inert gas loading in every compartment at the integration point, in
+         ATA."""
+
         self.ceilings = np.ones(16)
+        """Calculated ceilings for all the compartments at the integration point, in meters."""
+
         self.otu = 0.
+        """Oxigen Toxicity Units (OTU) at the integration point."""
+
         self.otu_cum = 0.
+        """Accumulated Oxigen Toxicity Units (OTU) at the calculated point."""
+
         self.cns = 0.
+        """Central Nervous System oxigen toxicity (CNS) at the integration point, in percentage."""
+
         self.cns_cum = 0.
+        """Accumulated Central Nervous System oxigen toxicity (CNS) at the integration point, in
+         percentage."""
 
     @property
     def p_amb(self) -> float:
+        """Absolute ambient pressure at the depth of the integration point, in ATA"""
         return (self.waypoint.depth / 10.) + 1.
 
     @property
     def ceiling(self) -> float:
+        """Ceiling at the integration point, in meters"""
         if np.max(self.ceilings) > 0.:
             return np.max(self.ceilings)
         else:
@@ -173,6 +200,13 @@ class IntegrationPoint:
 
 
 class Profile:
+    """Dive profile.
+
+    Args:
+        waypoints: List of :py:class:`Waypoint` defining the different profile phases.
+        tanks: List of :py:class:`tanks.Tank` used during the dive.
+        params: :py:class:`Parameters` of the dive.
+    """
     def __init__(self, waypoints: list[Waypoint], tanks: list[Tank],
                  params: Parameters = Parameters()) -> None:
         self._params: Parameters = params
@@ -194,13 +228,16 @@ class Profile:
 
     @property
     def waypoints(self) -> list[Waypoint]:
+        """List of given and calculated waypoints."""
         return self._waypoints
 
     @property
     def integration_points(self) -> list[IntegrationPoint]:
+        """List of calculated integration points."""
         return self._integration_points
 
     def plot(self) -> None:
+        """Plots the dive profile along with the ceiling."""
         depth = []
         ceiling = []
         runtime = []
@@ -214,6 +251,7 @@ class Profile:
         plt.show()
 
     def plot_waypoints(self) -> None:
+        """Plots the dive profile using the waypoints."""
         depth = []
         runtime = []
         for wp in self._waypoints:
@@ -224,6 +262,7 @@ class Profile:
         plt.show()
 
     def plot_integration_points(self) -> None:
+        """Plots the dive profile only using the integration points."""
         depth = []
         runtime = []
         for ip in self._integration_points:
@@ -234,6 +273,12 @@ class Profile:
         plt.show()
 
     def plot_compartment(self, gas: str, compartment: int) -> None:
+        """Plots the loading of the selected gas for the given compartment.
+
+        Args:
+            gas: Gas to plot. Allowed values: {'N2' | 'He'}
+            compartment: Compartment to plot. Allowed values: {1 .. 16}
+        """
         p_ig = []
         runtime = []
         for ip in self._integration_points:
@@ -244,6 +289,11 @@ class Profile:
         plt.show()
 
     def plot_compartments(self, gas: str) -> None:
+        """Plots the loading of the selected gas for the all the compartments.
+
+        Args:
+            gas: Gas to plot. Allowed values: {'N2' | 'He'}
+        """
         colors = 'bgrcmkbgrcmkbgrc'
         for c in range(16):
             p_ig = []
@@ -256,6 +306,7 @@ class Profile:
         plt.show()
 
     def plot_ceiling(self) -> None:
+        """Plots the ceiling of dive."""
         ceiling = []
         runtime = []
         for ip in self._integration_points:
@@ -266,6 +317,7 @@ class Profile:
         plt.show()
 
     def plot_ceilings(self) -> None:
+        """Plots the ceiling of all the compartments."""
         colors = 'bgrcmkbgrcmkbgrc'
         for c in range(16):
             ceilings = []

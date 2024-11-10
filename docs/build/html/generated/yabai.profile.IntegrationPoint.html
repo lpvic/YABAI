@@ -97,17 +97,110 @@
 <dt class="sig sig-object py" id="yabai.profile.IntegrationPoint">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">yabai.profile.</span></span><span class="sig-name descname"><span class="pre">IntegrationPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waypoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="yabai.profile.Waypoint.html#yabai.profile.Waypoint" title="yabai.profile.Waypoint"><span class="pre">Waypoint</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/yabai/profile.html#IntegrationPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#yabai.profile.IntegrationPoint" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Dive profile integration points.</p>
+<p>An integration point contains the dive profile information at every calculated point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>waypoint</strong> – <a class="reference internal" href="yabai.profile.Waypoint.html#yabai.profile.Waypoint" title="yabai.profile.Waypoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Waypoint</span></code></a> defining the basic data for calculation.</p>
+</dd>
+</dl>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceiling</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.ceiling" title="yabai.profile.IntegrationPoint.ceiling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceiling</span></code></a></p></td>
+<td><p>Ceiling at the integration point, in meters</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">p_amb</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.p_amb" title="yabai.profile.IntegrationPoint.p_amb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">p_amb</span></code></a></p></td>
+<td><p>Absolute ambient pressure at the depth of the integration point, in ATA</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.waypoint" title="yabai.profile.IntegrationPoint.waypoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">waypoint</span></code></a></p></td>
+<td><p>Waypoint with the depth, duration and runtime of the integration point.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.tank_pressure" title="yabai.profile.IntegrationPoint.tank_pressure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tank_pressure</span></code></a></p></td>
+<td><p>Pressure of all the tanks at the integration point, in bar.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.load_ig" title="yabai.profile.IntegrationPoint.load_ig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_ig</span></code></a></p></td>
+<td><p>Absolute pressure of inert gas loading in every compartment at the integration point, in ATA.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.ceilings" title="yabai.profile.IntegrationPoint.ceilings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceilings</span></code></a></p></td>
+<td><p>Calculated ceilings for all the compartments at the integration point, in meters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.otu" title="yabai.profile.IntegrationPoint.otu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">otu</span></code></a></p></td>
+<td><p>Oxigen Toxicity Units (OTU) at the integration point.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.otu_cum" title="yabai.profile.IntegrationPoint.otu_cum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">otu_cum</span></code></a></p></td>
+<td><p>Accumulated Oxigen Toxicity Units (OTU) at the calculated point.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.cns" title="yabai.profile.IntegrationPoint.cns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cns</span></code></a></p></td>
+<td><p>Central Nervous System oxigen toxicity (CNS) at the integration point, in percentage.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#yabai.profile.IntegrationPoint.cns_cum" title="yabai.profile.IntegrationPoint.cns_cum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cns_cum</span></code></a></p></td>
+<td><p>Accumulated Central Nervous System oxigen toxicity (CNS) at the integration point, in percentage.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py property">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.ceiling">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ceiling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#yabai.profile.IntegrationPoint.ceiling" title="Link to this definition"></a></dt>
+<dd><p>Ceiling at the integration point, in meters</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.ceilings">
+<span class="sig-name descname"><span class="pre">ceilings</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.ceilings" title="Link to this definition"></a></dt>
+<dd><p>Calculated ceilings for all the compartments at the integration point, in meters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.cns">
+<span class="sig-name descname"><span class="pre">cns</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.cns" title="Link to this definition"></a></dt>
+<dd><p>Central Nervous System oxigen toxicity (CNS) at the integration point, in percentage.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.cns_cum">
+<span class="sig-name descname"><span class="pre">cns_cum</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.cns_cum" title="Link to this definition"></a></dt>
+<dd><p>Accumulated Central Nervous System oxigen toxicity (CNS) at the integration point, in
+percentage.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.load_ig">
+<span class="sig-name descname"><span class="pre">load_ig</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.load_ig" title="Link to this definition"></a></dt>
+<dd><p>Absolute pressure of inert gas loading in every compartment at the integration point, in
+ATA.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.otu">
+<span class="sig-name descname"><span class="pre">otu</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.otu" title="Link to this definition"></a></dt>
+<dd><p>Oxigen Toxicity Units (OTU) at the integration point.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.otu_cum">
+<span class="sig-name descname"><span class="pre">otu_cum</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.otu_cum" title="Link to this definition"></a></dt>
+<dd><p>Accumulated Oxigen Toxicity Units (OTU) at the calculated point.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.p_amb">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">p_amb</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#yabai.profile.IntegrationPoint.p_amb" title="Link to this definition"></a></dt>
+<dd><p>Absolute ambient pressure at the depth of the integration point, in ATA</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.tank_pressure">
+<span class="sig-name descname"><span class="pre">tank_pressure</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.tank_pressure" title="Link to this definition"></a></dt>
+<dd><p>Pressure of all the tanks at the integration point, in bar.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="yabai.profile.IntegrationPoint.waypoint">
+<span class="sig-name descname"><span class="pre">waypoint</span></span><a class="headerlink" href="#yabai.profile.IntegrationPoint.waypoint" title="Link to this definition"></a></dt>
+<dd><p>Waypoint with the depth, duration and runtime of the integration point.</p>
+</dd></dl>
+
 </dd></dl>
 
 </section>
